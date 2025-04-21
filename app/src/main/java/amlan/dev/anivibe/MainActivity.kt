@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AniVibeTheme {
-                HomeScreen {  }
+                AppNavGraph()
             }
         }
     }
