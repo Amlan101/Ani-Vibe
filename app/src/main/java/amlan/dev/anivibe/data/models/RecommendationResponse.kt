@@ -6,6 +6,6 @@ data class RecommendationResponse(
 
 data class Anime(
     val title: String,
-    val imageUrl: String,
-    val explanation: String
+    val explanation: String,
+    val genres: List<String> = emptyList()
 )

@@ -260,32 +260,6 @@ fun HomeScreen(
     }
 }
 
-@Composable
-fun ExampleChips(
-    examples: List<String>,
-    onExampleSelected: (String) -> Unit
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        examples.chunked(2).forEach { rowExamples ->
-            Row(
-                modifier = Modifier.padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                rowExamples.forEach { example ->
-                    SuggestionChip(
-                        onClick = { onExampleSelected(example) },
-                        label = { Text(example, style = MaterialTheme.typography.bodySmall) },
-                        colors = SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                        ),
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
 private fun submitPrompt(
     prompt: String,
     onSubmitPrompt: (String) -> Unit,
@@ -294,17 +268,7 @@ private fun submitPrompt(
 ) {
     scope.launch {
         updateLoading(true)
-
-        delay(1000)
         onSubmitPrompt(prompt)
         updateLoading(false)
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen {
-
     }
 }
