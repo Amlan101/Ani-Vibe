@@ -1,5 +1,6 @@
 package amlan.dev.anivibe
 
+import amlan.dev.anivibe.ui.DetailsScreen
 import amlan.dev.anivibe.ui.HomeScreen
 import amlan.dev.anivibe.ui.LoadingScreen
 import amlan.dev.anivibe.ui.ResultsScreen
@@ -46,7 +47,18 @@ fun AppNavGraph(){
                 onBackPressed = {
                     navController.navigateUp()
                 },
-                prompt = viewModel.currentPrompt.collectAsState().value
+                prompt = viewModel.currentPrompt.collectAsState().value,
+                onAnimeClick = { anime ->
+                    viewModel.selectAnime(anime)
+                    navController.navigate("details")
+                }
+            )
+        }
+
+        composable("details"){
+            DetailsScreen(
+                viewModel = viewModel,
+                onBackPressed = { navController.navigateUp() }
             )
         }
     }

@@ -1,5 +1,6 @@
 package amlan.dev.anivibe.ui
 
+import amlan.dev.anivibe.data.models.Anime
 import amlan.dev.anivibe.viewmodel.RecommendationViewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -10,7 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +25,8 @@ import kotlinx.coroutines.delay
 fun ResultsScreen(
     viewModel: RecommendationViewModel,
     onBackPressed: () -> Unit,
-    prompt: String? = null // Optional prompt parameter
+    prompt: String? = null,
+    onAnimeClick: (Anime) -> Unit
 ) {
     val recommendations by viewModel.recommendations.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -65,7 +67,7 @@ fun ResultsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackPressed) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Go back"
                         )
                     }
@@ -75,7 +77,7 @@ fun ResultsScreen(
                 )
             )
 
-            // Prompt display (if available)
+            // Prompt display
             if (!prompt.isNullOrEmpty()) {
                 Card(
                     modifier = Modifier
@@ -173,7 +175,7 @@ fun ResultsScreen(
                             AnimeCard(
                                 anime = anime,
                                 position = index + 1,
-                                onClick = { viewModel.selectAnime(anime) }
+                                onClick = { onAnimeClick(anime) }
                             )
                         }
                     }
