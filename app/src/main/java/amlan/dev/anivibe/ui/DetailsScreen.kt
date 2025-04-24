@@ -2,6 +2,7 @@ package amlan.dev.anivibe.ui
 
 import amlan.dev.anivibe.data.models.Anime
 import amlan.dev.anivibe.viewmodel.RecommendationViewModel
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -411,8 +412,27 @@ fun DetailsScreen(
                                 Text("Add to Favorites")
                             }
 
+                            val context = LocalContext.current
+
                             OutlinedButton(
-                                onClick = { /* Share action */ },
+                                onClick = {
+                                    anime?.let {
+                                        val shareText = buildString {
+                                            append("Check out this anime: ${it.title}\n\n")
+                                            it.synopsis?.let { syn -> append("Synopsis: $syn\n\n") }
+                                            it.imgUrl?.let { img -> append("Poster: $img\n\n") }
+                                            append("Recommended based on your mood on AniVibe!")
+                                        }
+
+                                        val intent = Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            putExtra(Intent.EXTRA_TEXT, shareText)
+                                            type = "text/plain"
+                                        }
+
+                                        context.startActivity(Intent.createChooser(intent, "Share via"))
+                                    }
+                                },
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
