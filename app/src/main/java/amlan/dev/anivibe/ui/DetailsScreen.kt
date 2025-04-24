@@ -1,5 +1,6 @@
 package amlan.dev.anivibe.ui
 
+import amlan.dev.anivibe.data.models.Anime
 import amlan.dev.anivibe.viewmodel.RecommendationViewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -12,7 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,8 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -36,7 +42,8 @@ fun DetailsScreen(
     // Animation states
     var headerVisible by remember { mutableStateOf(false) }
     var contentVisible by remember { mutableStateOf(false) }
-    var genresVisible by remember { mutableStateOf(false) }
+    var statsVisible by remember { mutableStateOf(false) }
+    var actionsVisible by remember { mutableStateOf(false) }
 
     // Background gradient similar to ResultsScreen
     val backgroundGradient = Brush.verticalGradient(
@@ -51,8 +58,10 @@ fun DetailsScreen(
         headerVisible = true
         delay(200)
         contentVisible = true
-        delay(200)
-        genresVisible = true
+        delay(150)
+        statsVisible = true
+        delay(150)
+        actionsVisible = true
     }
 
     Box(
@@ -100,7 +109,7 @@ fun DetailsScreen(
                         .verticalScroll(scrollState)
                         .padding(bottom = 24.dp)
                 ) {
-                    // Header with title
+                    // Header with title and image
                     AnimatedVisibility(
                         visible = headerVisible,
                         enter = fadeIn(animationSpec = tween(500)) +
@@ -117,13 +126,27 @@ fun DetailsScreen(
                                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                             )
 
+                            // Cover image with gradient overlay
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(200.dp)
+                                    .height(220.dp)
                                     .padding(vertical = 8.dp)
                                     .clip(RoundedCornerShape(12.dp))
                             ) {
+                                // Use the actual image URL if available, otherwise fallback
+                                val imageUrl = anime!!.imgUrl ?: "https://via.placeholder.com/400x225?text=${anime!!.title}"
+
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(imageUrl)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Anime Cover Image",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+
                                 // Gradient overlay to ensure text visibility
                                 Box(
                                     modifier = Modifier
@@ -132,7 +155,7 @@ fun DetailsScreen(
                                             Brush.verticalGradient(
                                                 colors = listOf(
                                                     Color.Transparent,
-                                                    Color.Black.copy(alpha = 0.6f)
+                                                    Color.Black.copy(alpha = 0.7f)
                                                 ),
                                                 startY = 0f,
                                                 endY = 600f
@@ -140,30 +163,148 @@ fun DetailsScreen(
                                         )
                                 )
 
+                                // Metadata indicators at the bottom of the image
                                 Row(
                                     modifier = Modifier
                                         .align(Alignment.BottomStart)
                                         .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    // Rating indicator if available
+                                    anime!!.rating?.let { rating ->
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.9f),
+                                            shape = RoundedCornerShape(16.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Star,
+                                                    contentDescription = "Rating",
+                                                    tint = Color(0xFFFFD700), // Gold color
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = rating.toString(),
+                                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                    style = MaterialTheme.typography.labelMedium
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    // Episodes indicator if available
+                                    anime!!.episodes?.let { episodes ->
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f),
+                                            shape = RoundedCornerShape(16.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Filled.List,
+                                                    contentDescription = "Episodes",
+                                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = "${episodes.toInt()} eps",
+                                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                    style = MaterialTheme.typography.labelMedium
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    // Rank indicator if available
+                                    anime!!.ranked?.let { rank ->
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+                                            shape = RoundedCornerShape(16.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Star,
+                                                    contentDescription = "Rank",
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = "#${rank.toInt()}",
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    style = MaterialTheme.typography.labelMedium
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Air date if available
+                            anime!!.aired?.let { aired ->
+                                Row(
+                                    modifier = Modifier.padding(vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Star,
-                                        contentDescription = "Rating",
-                                        tint = Color(0xFFFFD700), // Gold color
-                                        modifier = Modifier.size(20.dp)
+                                        imageVector = Icons.Default.DateRange,
+                                        contentDescription = "Aired",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
                                     )
+                                    Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "Highly Recommended",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.padding(start = 4.dp)
+                                        text = "Aired: $aired",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                }
+                            }
+
+                            // Genres as chips
+                            if (anime!!.genres.isNotEmpty()) {
+                                FlowRow(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    anime!!.genres.forEach { genre ->
+                                        SuggestionChip(
+                                            onClick = { /* No action needed */ },
+                                            label = { Text(genre) },
+                                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
-                    // Content section
+                    // Divider
+                    if (headerVisible) {
+                        Divider(
+                            modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
+
+                    // Synopsis section
                     AnimatedVisibility(
                         visible = contentVisible,
                         enter = fadeIn(animationSpec = tween(500)) +
@@ -172,7 +313,7 @@ fun DetailsScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(horizontal = 16.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surface
                             ),
@@ -180,25 +321,26 @@ fun DetailsScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "About this Anime",
+                                    text = "Synopsis",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
 
                                 Text(
-                                    text = anime!!.explanation,
+                                    text = anime!!.synopsis ?: anime!!.explanation,
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
 
-                    // Genres section
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Why it fits your mood section
                     AnimatedVisibility(
-                        visible = genresVisible && anime!!.genres.isNotEmpty(),
+                        visible = statsVisible,
                         enter = fadeIn(animationSpec = tween(500)) +
                                 slideInVertically(animationSpec = tween(500)) { it / 2 }
                     ) {
@@ -207,29 +349,35 @@ fun DetailsScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "Genres",
+                                    text = "Why It Fits Your Mood",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    modifier = Modifier.padding(bottom = 12.dp)
                                 )
 
-                                // Genre chips
-                                FlowRow(
+                                Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    verticalAlignment = Alignment.Top
                                 ) {
-                                    anime!!.genres.forEach { genre ->
-                                        SuggestionChip(
-                                            onClick = { /* No action needed */ },
-                                            label = { Text(genre) }
-                                        )
-                                    }
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = "Explanation",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .padding(top = 2.dp, end = 8.dp)
+                                            .size(18.dp)
+                                    )
+
+                                    Text(
+                                        text = anime!!.explanation,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
@@ -237,7 +385,7 @@ fun DetailsScreen(
 
                     // Action buttons
                     AnimatedVisibility(
-                        visible = genresVisible,
+                        visible = actionsVisible,
                         enter = fadeIn(animationSpec = tween(500)) +
                                 slideInVertically(animationSpec = tween(500)) { it / 2 }
                     ) {
@@ -254,6 +402,12 @@ fun DetailsScreen(
                                 ),
                                 modifier = Modifier.weight(1f)
                             ) {
+                                Icon(
+                                    imageVector = Icons.Default.Favorite,
+                                    contentDescription = "Add to favorites",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text("Add to Favorites")
                             }
 
@@ -261,6 +415,12 @@ fun DetailsScreen(
                                 onClick = { /* Share action */ },
                                 modifier = Modifier.weight(1f)
                             ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Share",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text("Share")
                             }
                         }

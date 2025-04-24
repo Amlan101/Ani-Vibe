@@ -37,8 +37,14 @@ fun AppNavGraph(){
                 prompt = prompt,
                 viewModel = viewModel,
                 onResultReady = {
-                navController.navigate("results")
-            })
+                    navController.navigate("results") {
+                        // Pop up to home screen and save state
+                        popUpTo("home") { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
         }
 
         composable("results") {
