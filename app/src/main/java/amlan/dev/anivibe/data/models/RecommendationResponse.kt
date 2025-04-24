@@ -7,5 +7,11 @@ data class RecommendationResponse(
 data class Anime(
     val title: String,
     val explanation: String,
-    val genres: List<String> = emptyList()
+    val genres: List<String> = emptyList(),
+    val episodes: Float? = null,
+    val rating: Float? = null,
+    val ranked: Float? = null,
+    val aired: String? = null,
+    val synopsis: String? = null,
+    val imgUrl: String? = null
 )
